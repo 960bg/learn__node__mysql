@@ -8,6 +8,8 @@ exports.appendFile = appendFile;
 exports.writeFile = writeFile;
 exports.isCheckComands = isCheckComands;
 exports.cliIn = cliIn;
+exports.getInput = getInput;
+exports.createNote = createNote;
 
 //Проверка на наличие файла по пути
 function checkFile(pathFile) {
@@ -86,15 +88,18 @@ function writeFile(pathFile, title, content) {
 }
 
 // проверка введенных данных в консоль на соответсвие командам
-function isCheckComands(COMANDS, inputData) {
-  const masInputData = inputData.trim().split(' ');
+function isCheckComands(COMANDS = [], inputData = '') {
+  const masInputData = inputData.trim().split('#');
 
   console.log('isCheckComands(COMANDS::', COMANDS);
+  console.log('masInputData[0]::', masInputData[0]);
+  console.log('typeof COMANDS', typeof COMANDS);
+  console.log('isArray COMANDS', Array.isArray(COMANDS));
 
-  if (masInputData.length < 2) {
+  if (masInputData.length < 1) {
     return false;
   }
-  if (!Object.hasOwn(COMANDS, masInputData[0])) {
+  if (!COMANDS.includes(masInputData[0])) {
     return false;
   }
   return true;
@@ -108,8 +113,8 @@ function cliIn() {
 
       stdin.on('data', fnOnData);
 
-      function fnOnData(data) {
-        resolve(data);
+      function fnOnData(consoleInput) {
+        resolve(consoleInput);
         stdin.pause();
         stdin.off('data', fnOnData);
       }
@@ -119,4 +124,51 @@ function cliIn() {
       reject(error);
     }
   });
+}
+
+// разбор команды \ заголовка \ контента
+function getInput(inputData) {
+  const masInputData = inputData.trim().split('#');
+  const analysisInput = { comand: '', title: '', content: '' };
+  const countComands = masInputData.length;
+  for (let i = 0; i < countComands; i++) {
+    const input = masInputData[i];
+    let stopFor = false;
+    switch (i) {
+      case 0:
+        analysisInput.comand = input;
+        break;
+      case 1:
+        analysisInput.title = input;
+        break;
+      case 2:
+        analysisInput.content = input;
+        break;
+
+      default:
+        console.log(
+          `Введено больше 3 параметров, остальные параметры будут проигнорированы. `
+        );
+        stopFor = true;
+        break;
+    }
+    if (stopFor) {
+      break;
+    }
+  }
+  return analysisInput;
+}
+
+// создать заметку
+async function createNote(pathFile, title, content) {
+  // проверим есть ли файл
+  if (await checkFile(pathFile)) {
+    // добавить заметку в файл
+    await appendFile(pathFile, title, content);
+  } else {
+    // создать файл и добавить заметку
+    console.log('Будет создан файл');
+
+    await writeFile(pathFile, title, content);
+  }
 }
