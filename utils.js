@@ -11,6 +11,7 @@ exports.cliIn = cliIn;
 exports.getInput = getInput;
 exports.createNote = createNote;
 exports.listNotes = listNotes;
+exports.closeApp = closeApp;
 
 //Проверка на наличие файла по пути
 function checkFile(pathFile) {
@@ -22,7 +23,6 @@ function checkFile(pathFile) {
           resolve(false);
           return;
         }
-        console.log('Файл существует:', pathFile);
         resolve(true);
       });
     } catch (error) {
@@ -40,8 +40,7 @@ function checkFile(pathFile) {
 function appendFile(pathFile, data, title, content) {
   return new Promise((resolve, reject) => {
     try {
-      console.log('data');
-      console.log(data);
+      // добавим порядковый номер заметки
       const index = data.length + 1;
       data.push({ index, title, content });
       const json = JSON.stringify(data);
@@ -107,11 +106,6 @@ function writeFile(pathFile, title, content) {
 // проверка введенных данных в консоль на соответсвие командам
 function isCheckComands(COMANDS = [], inputData = '') {
   const masInputData = inputData.trim().split('#');
-
-  console.log('isCheckComands(COMANDS::', COMANDS);
-  console.log('masInputData[0]::', masInputData[0]);
-  console.log('typeof COMANDS', typeof COMANDS);
-  console.log('isArray COMANDS', Array.isArray(COMANDS));
 
   if (masInputData.length < 1) {
     return false;
@@ -181,69 +175,63 @@ function getInput(inputData) {
 // создать заметку
 async function createNote(pathFile, title, content) {
   // проверим есть ли файл
-  if (await checkFile(pathFile)) {
-    // получить заметки из файла
-    const data = await readFile(pathFile);
-
-    console.log('// получить заметки из файла');
-    console.log(data);
-
-    // добавить заметку в файл
-    await appendFile(pathFile, data, title, content);
-  } else {
+  if (!(await checkFile(pathFile))) {
     // создать файл и добавить заметку
-    console.log('Будет создан файл');
-
-    await writeFile(pathFile, title, content);
+    console.log('Будет создан файл ', pathFile);
+    return await writeFile(pathFile, title, content);
   }
+
+  // получить заметки из файла
+  console.log('// получить заметки из файла');
+  const data = await readFile(pathFile);
+  let jsonData;
+
+  // проверка пустой ли файл и на соответствие JSON
+  if (isEmptyData(data)) {
+    jsonData = [];
+  } else {
+    // проверить на соответствие JSON
+    if (!isJSONData(data)) {
+      return closeApp('Данные не соответствуют JSON. Возможно файл пуст.');
+    }
+
+    // разобрать данные в массив
+    jsonData = JSON.parse(data);
+  }
+  // добавить заметку в файл
+  await appendFile(pathFile, jsonData, title, content);
 }
 
 async function listNotes(pathFile) {
   // проверим есть ли файл
-  if (await checkFile(pathFile)) {
-    // вывести  заметки в консоль
-    await readFile(pathFile);
-  } else {
-    console.log('Ошибка: Файл не найден!', pathFile);
+  if (!(await checkFile(pathFile))) {
+    return closeApp(`Ошибка: Файл не найден!, ${pathFile}`);
   }
+
+  // вывести  заметки в консоль
+  const data = await readFile(pathFile);
+
+  if (isEmptyData(data)) {
+    return console.log('Заметок еще нет.');
+  }
+
+  // проверить на соответствие JSON
+  if (!isJSONData(data)) {
+    return closeApp('Данные не соответствуют JSON.');
+  }
+
+  console.log('Заметки из файла:');
+  //ВЫВОД ЗАМЕТОК В КОНСОЛЬ
+  console.log(JSON.parse(data));
 }
 
 async function readFile(pathFile) {
   return new Promise((resolve, reject) => {
     try {
       fs.readFile(pathFile, 'utf8', (err, data) => {
-        if (err) {
-          console.log('Ошибка чтения файла:', pathFile);
-        }
-        console.log(`Файл ${pathFile} успешно прочитан`);
-        console.log('data = ', data);
+        if (err) console.log('Ошибка чтения файла:', pathFile);
 
-        // if (data === '') {
-        //   data = [];
-        //   resolve(data);
-        //   return;
-        // }
-
-        try {
-          console.log(JSON.parse(data));
-          resolve(JSON.parse(data));
-        } catch (err) {
-          console.log('Ошибка при чтении в файле', err);
-          console.log('err.name', err.name);
-          console.log('err.message', err.message);
-
-          if (err.message.includes('Unexpected end of JSON input')) {
-            console.log(
-              'Неверный формат файла, либо записи не соответсвуют формату JSON [{...},{...}]'
-            );
-          }
-          data = [];
-          resolve(data);
-        }
-        // const notes = [];
-        // notes.push(JSON.parse(data));
-        // console.log('notes:\n', notes);
-        // console.log(typeof notes);
+        resolve(data);
       });
     } catch (error) {
       console.log(`Ошибка в function readFile(${pathFile})`);
@@ -251,4 +239,44 @@ async function readFile(pathFile) {
       reject(error);
     }
   });
+}
+
+// проверка на JSON данных из файла
+function isJSONData(data) {
+  try {
+    const json = JSON.parse(data);
+    // console.log(json);
+    return json;
+  } catch (err) {
+    if (
+      err.message.includes('Unexpected end of JSON input') ||
+      err.message.includes('is not valid JSON')
+    ) {
+      console.log(
+        'Неверный формат файла, либо записи в файле не соответсвуют формату JSON [{...},{...}]'
+      );
+      console.log('Данные из файла:');
+      console.log('========= Начало файла =========');
+      console.log(data);
+      console.log('========= Конец  файла =========');
+    } else {
+      console.log('Ошибка при чтении в файле', err);
+      console.log('err.name', err.name);
+      console.log('err.message', err.message);
+    }
+
+    return false;
+  }
+}
+
+function closeApp(msg = 'no message') {
+  if (msg !== 'no message') {
+    console.log(msg);
+  }
+  console.log('Завершение работы');
+  process.exit(0);
+}
+
+function isEmptyData(data) {
+  return data.trim() === '';
 }

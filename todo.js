@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const utils = require('./utils.js');
 const NAME_FILE = 'notes.json';
+const pathFile = path.resolve(__dirname, NAME_FILE);
 
 // Режимы работы программы
 const { COMANDS } = require('./comands.js');
@@ -11,7 +12,7 @@ main();
 async function main() {
   try {
     console.log(`
-    Приветствие: приложение ToDo.
+    приложение ToDo.
     Доступные команды:
     - 1 or create - создает новую заметку в файле notes.json. create принимает два аргумента: заголовок заметки и её содержимое.
     - 2 or list отображает список заметок.
@@ -30,15 +31,14 @@ async function main() {
     let inputData = await utils.cliIn();
 
     // проверка ввода
-    if (await utils.isCheckComands(COMANDS, inputData)) {
-      console.log('Все норм');
-    } else {
-      console.log(' чтото не так');
+    if (!(await utils.isCheckComands(COMANDS, inputData))) {
+      console.log('Не удалось распозназнать команду. Проверьте ввод');
+      return await main();
     }
 
     // разбор команд
     const input = utils.getInput(inputData);
-    const pathFile = path.resolve(__dirname, NAME_FILE);
+
     switch (input.comand) {
       case '1':
         await utils.createNote(pathFile, input.title, input.content);
@@ -79,12 +79,10 @@ async function main() {
         await main();
         break;
       case '6':
-        console.log('Завершение работы');
-        process.exit(0);
+        utils.closeApp();
         break;
       case 'exit':
-        console.log('Завершение работы');
-        process.exit(0);
+        utils.closeApp();
         break;
 
       default:
@@ -95,7 +93,6 @@ async function main() {
   } catch (error) {
     console.log('============================= error:');
     console.log(error);
-
-    process.exit(0);
+    utils.closeApp();
   }
 }
