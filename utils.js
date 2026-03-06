@@ -13,7 +13,40 @@ exports.createNote = createNote;
 exports.listNotes = listNotes;
 exports.closeApp = closeApp;
 exports.isContinueApp = isContinueApp;
-exports.inputCli = inputCli;
+exports.userInput = userInput;
+exports.viewNote = viewNote;
+
+// просмотр заметки по номеру
+async function viewNote(pathFile) {
+  console.log(`введите номер заметки для вывода`);
+
+  let noteNumber = (await userInput()).trim();
+  if (isNaN(noteNumber)) {
+    console.log(`Вы ввели неверный номер заметки`);
+  }
+
+  noteNumber = Number(noteNumber);
+  // проверка на наличие файла
+  if (!checkFile(pathFile)) {
+    console.log(
+      `Файл ${pathFile} не найден. Возможно вы еще не создали заметок`
+    );
+    return;
+  }
+
+  const notes = JSON.parse(await readFile(pathFile));
+  const note = notes.filter((note) => note.index === noteNumber);
+  console.log('note');
+  console.log(note);
+
+  if (note.length === 0) {
+    console.log(`Заметка с номером ${noteNumber} не найдена`);
+  }
+
+  // вывод заметки в консоль
+  console.log(`Заметка:`);
+  console.log(note);
+}
 
 //Проверка на наличие файла по пути
 function checkFile(pathFile) {
@@ -268,7 +301,7 @@ function isEmptyData(data) {
 }
 
 // ввод данных в консоль
-function inputCli() {
+function userInput() {
   return new Promise((resolve, reject) => {
     function fnInputData(data) {
       stdin.pause();
@@ -289,7 +322,7 @@ function inputCli() {
 
 async function isContinueApp() {
   console.log('Продолжить выполение программы? y/n');
-  const input = await inputCli();
+  const input = await userInput();
   switch (input.trim()) {
     case 'yes':
     case 'y':

@@ -27,7 +27,7 @@ async function main() {
     `);
 
     console.log(`Введите команду:`);
-    let inputData = await utils.inputCli();
+    let inputData = await utils.userInput();
 
     // проверка ввода
     if (!(await utils.isCheckComands(COMANDS, inputData))) {
@@ -56,7 +56,7 @@ async function main() {
         await qustionContinue();
         break;
       case '3':
-        await utils.viewtNote(pathFile, input.title);
+        await utils.viewNote(pathFile);
         await qustionContinue();
         break;
       case 'view':
