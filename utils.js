@@ -3,15 +3,17 @@
 const fs = require('fs');
 const { stdin } = process;
 stdin.setEncoding('utf8');
+
 exports.checkFile = checkFile;
 exports.appendFile = appendFile;
 exports.writeFile = writeFile;
 exports.isCheckComands = isCheckComands;
-exports.cliIn = cliIn;
 exports.getInput = getInput;
 exports.createNote = createNote;
 exports.listNotes = listNotes;
 exports.closeApp = closeApp;
+exports.isContinueApp = isContinueApp;
+exports.inputCli = inputCli;
 
 //Проверка на наличие файла по пути
 function checkFile(pathFile) {
@@ -42,20 +44,20 @@ function appendFile(pathFile, data, title, content) {
     try {
       // добавим порядковый номер заметки
       const index = data.length + 1;
-      data.push({ index, title, content });
+      const date = getDateNow();
+      const note = { index, date, title, content };
+      data.push(note);
       const json = JSON.stringify(data);
-      console.log('data из appendFile');
-      console.log(data);
-      console.log('json из appendFile');
-      console.log(json);
+
       fs.writeFile(pathFile, json, (err) => {
         if (err) {
           console.log('Ошибка:', err);
         }
-        console.log(
-          'function appendFile: В файл успешно добавлена новая заметка'
-        );
         resolve(json);
+        console.log('Заметка добавлена:');
+        console.log(note);
+        console.log('Ваши заметки: ');
+        console.log(data);
       });
       // fs.appendFile(
       //   pathFile,
@@ -83,8 +85,10 @@ function appendFile(pathFile, data, title, content) {
 function writeFile(pathFile, title, content) {
   return new Promise((resolve, reject) => {
     try {
-      const notes = [{ index: '1', title, content }];
-      const json = JSON.stringify(notes);
+      const index = 1;
+      const date = getDateNow();
+      const note = [{ index, date, title, content }];
+      const json = JSON.stringify(note);
       fs.writeFile(pathFile, json, (err) => {
         if (err) {
           throw new Error(
@@ -114,27 +118,6 @@ function isCheckComands(COMANDS = [], inputData = '') {
     return false;
   }
   return true;
-}
-
-// ввод пользователя в консоль
-function cliIn() {
-  return new Promise((resolve, reject) => {
-    try {
-      stdin.resume();
-
-      stdin.on('data', fnOnData);
-
-      function fnOnData(consoleInput) {
-        resolve(consoleInput);
-        stdin.pause();
-        stdin.off('data', fnOnData);
-      }
-    } catch (error) {
-      console.log(`Ошибка в function cliIn()`);
-      console.log(error);
-      reject(error);
-    }
-  });
 }
 
 // разбор команды \ заголовка \ контента
@@ -176,7 +159,7 @@ function getInput(inputData) {
 async function createNote(pathFile, title, content) {
   // проверим есть ли файл
   if (!(await checkFile(pathFile))) {
-    // создать файл и добавить заметку
+    // создать новый файл и добавить заметку
     console.log('Будет создан файл ', pathFile);
     return await writeFile(pathFile, title, content);
   }
@@ -269,14 +252,76 @@ function isJSONData(data) {
   }
 }
 
+// закрытие приложения
 function closeApp(msg = 'no message') {
   if (msg !== 'no message') {
     console.log(msg);
   }
   console.log('Завершение работы');
+
+  // stdin.end();
   process.exit(0);
 }
 
 function isEmptyData(data) {
   return data.trim() === '';
+}
+
+// ввод данных в консоль
+function inputCli() {
+  return new Promise((resolve, reject) => {
+    function fnInputData(data) {
+      stdin.pause();
+      stdin.off('data', fnInputData);
+      resolve(data);
+    }
+
+    try {
+      stdin.resume();
+      stdin.on('data', fnInputData);
+    } catch (error) {
+      reject(false);
+      console.error(error);
+      closeApp(error);
+    }
+  });
+}
+
+async function isContinueApp() {
+  console.log('Продолжить выполение программы? y/n');
+  const input = await inputCli();
+  switch (input.trim()) {
+    case 'yes':
+    case 'y':
+      console.log('ВВЕДЕНО ДА');
+      return true;
+
+    case 'n':
+    case 'no':
+    case 'not':
+      console.log('ВВЕДЕНО НЕТ');
+      return false;
+
+    default:
+      console.log('НЕВЕРНЫЙ ВВОД!');
+      return await isContinueApp();
+  }
+}
+
+function getDateNow() {
+  const date = new Date();
+  const day = zeroInFirst(date.getDate());
+  const month = zeroInFirst(Number(date.getMonth()) + 1);
+  const year = date.getFullYear();
+  const hh = zeroInFirst(date.getHours());
+  const mm = zeroInFirst(date.getMinutes());
+  const ss = zeroInFirst(date.getSeconds());
+  return `${day}:${month}:${year} -- ${hh}:${mm}:${ss}`;
+}
+
+function zeroInFirst(str) {
+  if (Number(str) < 10) {
+    return `0${str}`;
+  }
+  return str;
 }

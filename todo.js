@@ -1,4 +1,3 @@
-const fs = require('fs');
 const path = require('path');
 const utils = require('./utils.js');
 const NAME_FILE = 'notes.json';
@@ -28,7 +27,7 @@ async function main() {
     `);
 
     console.log(`Введите команду:`);
-    let inputData = await utils.cliIn();
+    let inputData = await utils.inputCli();
 
     // проверка ввода
     if (!(await utils.isCheckComands(COMANDS, inputData))) {
@@ -42,35 +41,35 @@ async function main() {
     switch (input.comand) {
       case '1':
         await utils.createNote(pathFile, input.title, input.content);
-        await main();
+        await qustionContinue();
         break;
       case 'create':
         await utils.createNote(pathFile, input.title, input.content);
-        await main();
+        await qustionContinue();
         break;
       case '2':
         await utils.listNotes(pathFile);
-        await main();
+        await qustionContinue();
         break;
       case 'list':
         await utils.listNotes(pathFile);
-        await main();
+        await qustionContinue();
         break;
       case '3':
         await utils.viewtNote(pathFile, input.title);
-        await main();
+        await qustionContinue();
         break;
       case 'view':
         await utils.viewNote(pathFile, input.title);
-        await main();
+        await qustionContinue();
         break;
       case '4':
         await utils.removeNote(pathFile, input.title);
-        await main();
+        await qustionContinue();
         break;
       case 'remove':
         await utils.removeNote(pathFile, input.title);
-        await main();
+        await qustionContinue();
         break;
       case '5':
         await main();
@@ -87,12 +86,20 @@ async function main() {
 
       default:
         console.log(`Неверный ввод. повторите ввод`);
-        await main();
+        await qustionContinue();
         break;
     }
   } catch (error) {
     console.log('============================= error:');
     console.log(error);
+    utils.closeApp();
+  }
+}
+
+async function qustionContinue() {
+  if (await utils.isContinueApp()) {
+    await main();
+  } else {
     utils.closeApp();
   }
 }
