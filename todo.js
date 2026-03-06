@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const utils = require('./utils.js');
-const NAME_FILE = 'notes.txt';
+const NAME_FILE = 'notes.json';
 
 // Режимы работы программы
 const { COMANDS } = require('./comands.js');
@@ -42,27 +42,35 @@ async function main() {
     switch (input.comand) {
       case '1':
         await utils.createNote(pathFile, input.title, input.content);
+        await main();
         break;
       case 'create':
         await utils.createNote(pathFile, input.title, input.content);
+        await main();
         break;
       case '2':
         await utils.listNotes(pathFile);
+        await main();
         break;
       case 'list':
         await utils.listNotes(pathFile);
+        await main();
         break;
       case '3':
         await utils.viewtNote(pathFile, input.title);
+        await main();
         break;
       case 'view':
         await utils.viewNote(pathFile, input.title);
+        await main();
         break;
       case '4':
         await utils.removeNote(pathFile, input.title);
+        await main();
         break;
       case 'remove':
         await utils.removeNote(pathFile, input.title);
+        await main();
         break;
       case '5':
         await main();
