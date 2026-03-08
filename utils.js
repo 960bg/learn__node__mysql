@@ -5,8 +5,8 @@ const { stdin } = process;
 stdin.setEncoding('utf8');
 
 exports.checkFile = checkFile;
-exports.appendFile = appendFile;
-exports.writeFile = writeFile;
+exports.addNoteFile = addNoteFile;
+// exports.writeFile = writeFile;
 exports.isCheckComands = isCheckComands;
 exports.getInput = getInput;
 exports.createNote = createNote;
@@ -15,6 +15,50 @@ exports.closeApp = closeApp;
 exports.isContinueApp = isContinueApp;
 exports.userInput = userInput;
 exports.viewNote = viewNote;
+exports.removeNote = removeNote;
+
+// удаление заметки
+async function removeNote(pathFile) {
+  console.log(`введите номер заметки для удаления`);
+  let noteNumber = (await userInput()).trim();
+  if (isNaN(noteNumber)) {
+    console.log(`Вы ввели неверный номер заметки`);
+    return;
+  }
+  noteNumber = Number(noteNumber);
+
+  // проверка на наличие файла
+  if (!checkFile(pathFile)) {
+    console.log(
+      `Файл ${pathFile} не найден. Возможно вы еще не создали заметок`
+    );
+    return;
+  }
+
+  // прочитать заметки из файла
+  const notes = JSON.parse(await readFile(pathFile));
+  // найти заметку для удаления
+  const noteForDelete = notes.filter((note) => note.index === noteNumber);
+  // сформировать новый массив заметок без удаленной заметки
+  const notesForSave = notes.filter((note) => note.index !== noteNumber);
+
+  if (noteForDelete.length === 0) {
+    console.log(`Заметка для удаления с номером ${noteNumber} не найдена`);
+    return;
+  }
+
+  // перезапишем файл заметок без удаленной заметки
+  const doneWriting = await writeArrayNotesToFile(
+    pathFile,
+    JSON.stringify(notesForSave)
+  );
+  // вывод заметки в консоль
+  console.log(`Заметка удалена:`);
+  console.log(noteForDelete);
+  // вывод содержимого файла в консоль
+  console.log(`Содержимого файла :`);
+  console.log(doneWriting);
+}
 
 // просмотр заметки по номеру
 async function viewNote(pathFile) {
@@ -23,6 +67,7 @@ async function viewNote(pathFile) {
   let noteNumber = (await userInput()).trim();
   if (isNaN(noteNumber)) {
     console.log(`Вы ввели неверный номер заметки`);
+    return;
   }
 
   noteNumber = Number(noteNumber);
@@ -41,6 +86,7 @@ async function viewNote(pathFile) {
 
   if (note.length === 0) {
     console.log(`Заметка с номером ${noteNumber} не найдена`);
+    return;
   }
 
   // вывод заметки в консоль
@@ -71,73 +117,42 @@ function checkFile(pathFile) {
   });
 }
 
-// добавить заметку в файл
-function appendFile(pathFile, data, title, content) {
+// запись в файл
+function writeArrayNotesToFile(pathFile, arrayJsonString) {
   return new Promise((resolve, reject) => {
     try {
-      // добавим порядковый номер заметки
-      const index = data.length + 1;
-      const date = getDateNow();
-      const note = { index, date, title, content };
-      data.push(note);
-      const json = JSON.stringify(data);
-
-      fs.writeFile(pathFile, json, (err) => {
+      fs.writeFile(pathFile, arrayJsonString, (err) => {
         if (err) {
           console.log('Ошибка:', err);
         }
-        resolve(json);
-        console.log('Заметка добавлена:');
-        console.log(note);
-        console.log('Ваши заметки: ');
-        console.log(data);
+        resolve(arrayJsonString);
+        console.log('Файл записан');
       });
-      // fs.appendFile(
-      //   pathFile,
-      //   json,
-      //   { encoding: 'utf8', mode: 0o666, flag: 'a' },
-      //   (err) => {
-      //     if (err) {
-      //       throw new Error(
-      //         `Ошибка при добавлении заметки: ${json} в файл ${pathFile}`
-      //       );
-      //     }
-      //     console.log(`Заметка: ${json} успешно добавлена в файл ${pathFile}`);
-      //     resolve(true);
-      //   }
-      // );
     } catch (error) {
-      console.log(`Ошибка в function appendFile(pathFile, title, content)`);
+      console.log(
+        `Ошибка в function writeArrayNotesToFile(pathFile, title, content)`
+      );
       console.log(`Параметры path: ${pathFile}`);
       console.log(error);
       reject(error);
     }
   });
 }
-// записать заметку в файл с нуля
-function writeFile(pathFile, title, content) {
-  return new Promise((resolve, reject) => {
-    try {
-      const index = 1;
-      const date = getDateNow();
-      const note = [{ index, date, title, content }];
-      const json = JSON.stringify(note);
-      fs.writeFile(pathFile, json, (err) => {
-        if (err) {
-          throw new Error(
-            `Ошибка при добавлении заметки: ${json} в файл ${pathFile}`
-          );
-        }
-        console.log(`Заметка: ${json} успешно добавлена в файл ${pathFile}`);
-        resolve(true);
-      });
-    } catch (error) {
-      console.log(`Ошибка в function writeFile(pathFile, title, content)`);
-      console.log(`Параметры path: ${pathFile}`);
-      console.log(error);
-      reject(error);
-    }
-  });
+
+// добавить заметку в файл
+async function addNoteFile(pathFile, arrayNotesJSON, title, content) {
+  // добавим порядковый номер заметки
+  const index = arrayNotesJSON.length + 1;
+  // добавим дату заметки
+  const date = getDateNow();
+  // сформируем заметку
+  const note = { index, date, title, content };
+  arrayNotesJSON.push(note);
+  const arrayNotesString = JSON.stringify(arrayNotesJSON);
+  const doneWriting = await writeArrayNotesToFile(pathFile, arrayNotesString);
+  console.log('Запись в файл прошла успешно');
+  console.log('Содержимое файла');
+  console.log(doneWriting);
 }
 
 // проверка введенных данных в консоль на соответсвие командам
@@ -194,7 +209,7 @@ async function createNote(pathFile, title, content) {
   if (!(await checkFile(pathFile))) {
     // создать новый файл и добавить заметку
     console.log('Будет создан файл ', pathFile);
-    return await writeFile(pathFile, title, content);
+    return await addNoteFile(pathFile, [], title, content);
   }
 
   // получить заметки из файла
@@ -215,9 +230,10 @@ async function createNote(pathFile, title, content) {
     jsonData = JSON.parse(data);
   }
   // добавить заметку в файл
-  await appendFile(pathFile, jsonData, title, content);
+  await addNoteFile(pathFile, jsonData, title, content);
 }
 
+// вывести список заметок по введенному номеру заметки
 async function listNotes(pathFile) {
   // проверим есть ли файл
   if (!(await checkFile(pathFile))) {
@@ -241,7 +257,7 @@ async function listNotes(pathFile) {
   console.log(JSON.parse(data));
 }
 
-async function readFile(pathFile) {
+function readFile(pathFile) {
   return new Promise((resolve, reject) => {
     try {
       fs.readFile(pathFile, 'utf8', (err, data) => {
