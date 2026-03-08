@@ -19,8 +19,12 @@ exports.removeNote = removeNote;
 
 // удаление заметки
 async function removeNote(pathFile) {
-  console.log(`введите номер заметки для удаления`);
+  console.log(`введите номер заметки для удаления или 0 или cancel для отмены`);
   let noteNumber = (await userInput()).trim();
+  if (noteNumber === '0' || noteNumber === 'cancel') {
+    return;
+  }
+
   if (isNaN(noteNumber)) {
     console.log(`Вы ввели неверный номер заметки`);
     return;
@@ -57,7 +61,7 @@ async function removeNote(pathFile) {
   console.log(noteForDelete);
   // вывод содержимого файла в консоль
   console.log(`Содержимого файла :`);
-  console.log(doneWriting);
+  console.log(JSON.parse(doneWriting));
 }
 
 // просмотр заметки по номеру
@@ -81,8 +85,6 @@ async function viewNote(pathFile) {
 
   const notes = JSON.parse(await readFile(pathFile));
   const note = notes.filter((note) => note.index === noteNumber);
-  console.log('note');
-  console.log(note);
 
   if (note.length === 0) {
     console.log(`Заметка с номером ${noteNumber} не найдена`);
@@ -149,22 +151,28 @@ async function addNoteFile(pathFile, arrayNotesJSON, title, content) {
   const note = { index, date, title, content };
   arrayNotesJSON.push(note);
   const arrayNotesString = JSON.stringify(arrayNotesJSON);
-  const doneWriting = await writeArrayNotesToFile(pathFile, arrayNotesString);
+  await writeArrayNotesToFile(pathFile, arrayNotesString);
   console.log('Запись в файл прошла успешно');
-  console.log('Содержимое файла');
-  console.log(doneWriting);
+  console.log('Ваша заметка добавлена: ', note);
+  console.log();
+  // console.log('Содержимое файла');
+  // console.log(JSON.parse(doneWriting));
 }
 
 // проверка введенных данных в консоль на соответсвие командам
 function isCheckComands(COMANDS = [], inputData = '') {
-  const masInputData = inputData.trim().split('#');
+  const masInputData = inputData.trim();
+  // const masInputData = inputData.trim().split('#');
 
-  if (masInputData.length < 1) {
+  if (masInputData.length !== 1) {
     return false;
   }
-  if (!COMANDS.includes(masInputData[0])) {
+  if (!COMANDS.includes(masInputData)) {
     return false;
   }
+  // if (!COMANDS.includes(masInputData[0])) {
+  //   return false;
+  // }
   return true;
 }
 
@@ -172,39 +180,61 @@ function isCheckComands(COMANDS = [], inputData = '') {
 function getInput(inputData) {
   // разбираем введенную строку на массив с командами
   // 0 эл-т - это команда создания заметки\вывода заметок\просмотра конкретной заметки\удаления\продолжить\выхода
-  const masInputData = inputData.trim().split('#');
-  const analysisInput = { comand: '', title: '', content: '' };
-  const countComands = masInputData.length;
-  for (let i = 0; i < countComands; i++) {
-    const input = masInputData[i];
-    let stopFor = false;
-    switch (i) {
-      case 0:
-        analysisInput.comand = input;
-        break;
-      case 1:
-        analysisInput.title = input;
-        break;
-      case 2:
-        analysisInput.content = input;
-        break;
+  // const masInputData = inputData.trim().split('#');
 
-      default:
-        console.log(
-          `Введено больше 3 параметров, остальные параметры будут проигнорированы. `
-        );
-        stopFor = true;
-        break;
-    }
-    if (stopFor) {
-      break;
-    }
-  }
+  const masInputData = inputData.trim();
+  const analysisInput = { comand: masInputData };
+
+  // const analysisInput = { comand: '', title: '', content: '' };
+  // const countComands = masInputData.length;
+
+  // for (let i = 0; i < countComands; i++) {
+  //   const input = masInputData[i];
+  //   let stopFor = false;
+  //   switch (i) {
+  //     case 0:
+  //       analysisInput.comand = input;
+  //       break;
+  //     case 1:
+  //       analysisInput.title = input;
+  //       break;
+  //     case 2:
+  //       analysisInput.content = input;
+  //       break;
+
+  //     default:
+  //       console.log(
+  //         `Введено больше 3 параметров, остальные параметры будут проигнорированы. `
+  //       );
+  //       stopFor = true;
+  //       break;
+  //   }
+  //   if (stopFor) {
+  //     break;
+  //   }
+  // }
   return analysisInput;
 }
 
 // создать заметку
-async function createNote(pathFile, title, content) {
+async function createNote(pathFile) {
+  // async function createNote(pathFile, title, content) {
+
+  // если выбрано добавление заметки \команда 1\ тогда запросить ввести заголовок и текст заметки
+  console.log('Ввдите заголовок');
+  const title = (await userInput()).trim();
+  console.log('Ввдите текст заметки');
+  const content = (await userInput()).trim();
+
+  if (title === '') {
+    console.log('Не введен заголовок заметки');
+    return;
+  }
+  if (content === '') {
+    console.log('Не введен текст заметки');
+    return;
+  }
+
   // проверим есть ли файл
   if (!(await checkFile(pathFile))) {
     // создать новый файл и добавить заметку
@@ -213,7 +243,7 @@ async function createNote(pathFile, title, content) {
   }
 
   // получить заметки из файла
-  console.log('// получить заметки из файла');
+  // console.log('// получить заметки из файла');
   const data = await readFile(pathFile);
   let jsonData;
 
@@ -276,9 +306,10 @@ function readFile(pathFile) {
 // проверка на JSON данных из файла
 function isJSONData(data) {
   try {
-    const json = JSON.parse(data);
-    // console.log(json);
-    return json;
+    // пробуем парсить в JSON
+    JSON.parse(data);
+
+    return true;
   } catch (err) {
     if (
       err.message.includes('Unexpected end of JSON input') ||

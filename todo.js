@@ -11,19 +11,22 @@ main();
 async function main() {
   try {
     console.log(`
-    приложение ToDo.
-    Доступные команды:
-    - 1 or create - создает новую заметку в файле notes.json. create принимает два аргумента: заголовок заметки и её содержимое.
-    - 2 or list отображает список заметок.
-    - 3 or view выводит содержимое заметки, заголовок которой передается в качестве аргумента.
-    - 4 or remove удаляет заметку, заголовок которой передается в качестве аргумента.
-    - 5 or continue продолжить работу 
-    - 6 or exit завершение работы
-
-            Пример создания заметки:
-              1#Заголовок Заметки#Текст Заметки
-                         или
-              create#Заголовок Заметки#Текст Заметки
+          -----------------------------------------------------------------------------------------------------------------------------------
+          |  приложение ToDo.                                                                                                               |
+          |  Доступные команды:                                                                                                             |
+          |  - 1 or create - создает новую заметку в файле notes.json.                                                                      |
+          |         create принимает два аргумента через символ #: заголовок заметки и её содержимое.                                       |
+          |  - 2 or list отображает список заметок.                                                                                         |
+          |  - 3 or view выводит содержимое заметки, заголовок которой передается в качестве аргумента.                                     |  
+          |  - 4 or remove удаляет заметку, заголовок которой передается в качестве аргумента.                                              |
+          |  - 5 or continue продолжить работу                                                                                              |
+          |  - 6 or exit завершение работы                                                                                                  |
+          |                                                                                                                                 |
+          |          Пример создания заметки:                                                                                               |
+          |            1#Заголовок Заметки#Текст Заметки                                                                                    |
+          |                      или                                                                                                        |
+          |            create#Заголовок Заметки#Текст Заметки                                                                               |
+          -----------------------------------------------------------------------------------------------------------------------------------
     `);
 
     console.log(`Введите команду:`);
@@ -41,47 +44,82 @@ async function main() {
     switch (input.comand) {
       case '1':
         await utils.createNote(pathFile, input.title, input.content);
+        console.log();
+        console.log();
         await qustionContinue();
         break;
+
       case 'create':
         await utils.createNote(pathFile, input.title, input.content);
+        console.log();
+        console.log();
         await qustionContinue();
         break;
+
       case '2':
         await utils.listNotes(pathFile);
+        console.log();
+        console.log();
         await qustionContinue();
         break;
+
       case 'list':
         await utils.listNotes(pathFile);
+        console.log();
+        console.log();
         await qustionContinue();
         break;
+
       case '3':
         await utils.viewNote(pathFile);
+        console.log();
+        console.log();
         await qustionContinue();
         break;
+
       case 'view':
         await utils.viewNote(pathFile, input.title);
+        console.log();
+        console.log();
         await qustionContinue();
         break;
+
       case '4':
         await utils.removeNote(pathFile, input.title);
+        console.log();
+        console.log();
         await qustionContinue();
         break;
+
       case 'remove':
         await utils.removeNote(pathFile, input.title);
+        console.log();
+        console.log();
         await qustionContinue();
         break;
+
       case '5':
         await main();
+        console.log();
+        console.log();
         break;
+
       case 'continue':
+        console.log();
+        console.log();
         await main();
         break;
+
       case '6':
         utils.closeApp();
+        console.log();
+        console.log();
         break;
+
       case 'exit':
         utils.closeApp();
+        console.log();
+        console.log();
         break;
 
       default:
