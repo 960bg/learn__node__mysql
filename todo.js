@@ -43,65 +43,98 @@ async function main() {
 
     switch (input.comand) {
       case '1':
+        console.log();
+        console.log();
         await utils.createNote(pathFile, input.title, input.content);
         console.log();
         console.log();
         await qustionContinue();
+        console.log();
+        console.log();
         break;
 
       case 'create':
+        console.log();
+        console.log();
         await utils.createNote(pathFile, input.title, input.content);
         console.log();
         console.log();
         await qustionContinue();
+        console.log();
+        console.log();
         break;
 
       case '2':
+        console.log();
+        console.log();
         await utils.listNotes(pathFile);
         console.log();
         console.log();
         await qustionContinue();
+        console.log();
+        console.log();
         break;
 
       case 'list':
+        console.log();
+        console.log();
         await utils.listNotes(pathFile);
         console.log();
         console.log();
         await qustionContinue();
+        console.log();
+        console.log();
         break;
 
       case '3':
+        console.log();
+        console.log();
         await utils.viewNote(pathFile);
         console.log();
         console.log();
         await qustionContinue();
+        console.log();
+        console.log();
         break;
 
       case 'view':
+        console.log();
+        console.log();
         await utils.viewNote(pathFile, input.title);
         console.log();
         console.log();
         await qustionContinue();
+        console.log();
+        console.log();
         break;
 
       case '4':
+        console.log();
+        console.log();
         await utils.removeNote(pathFile, input.title);
         console.log();
         console.log();
         await qustionContinue();
+        console.log();
+        console.log();
         break;
 
       case 'remove':
+        console.log();
+        console.log();
         await utils.removeNote(pathFile, input.title);
         console.log();
         console.log();
         await qustionContinue();
+        console.log();
+        console.log();
         break;
 
       case '5':
+        console.log();
+        console.log();
         await main();
-        console.log();
-        console.log();
+
         break;
 
       case 'continue':
@@ -125,11 +158,15 @@ async function main() {
       default:
         console.log(`Неверный ввод. повторите ввод`);
         await qustionContinue();
+        console.log();
+        console.log();
         break;
     }
   } catch (error) {
     console.log('============================= error:');
     console.log(error);
+    console.log();
+    console.log();
     utils.closeApp();
   }
 }
