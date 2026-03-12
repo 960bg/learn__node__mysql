@@ -10,6 +10,9 @@ class Timer extends EventEmitter {
     this.ticks += 1;
     if (this.ticks <= this.total) {
       this.emit('tick', this.ticks);
+      if (this.total / 2 === this.ticks) {
+        this.emit('ekvator', 'это половина');
+      }
     } else {
       this.end();
     }
@@ -27,6 +30,7 @@ class Timer extends EventEmitter {
 const timer = new Timer(10, 1000);
 timer.once('start', () => console.log('start'));
 timer.on('tick', (tick) => console.log(tick));
+timer.once('ekvator', (tick) => console.log(tick));
 timer.once('end', () => console.log('конец'));
 
 timer.start();
